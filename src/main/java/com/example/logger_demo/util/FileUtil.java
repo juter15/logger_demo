@@ -15,35 +15,29 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 @Slf4j
 public class FileUtil {
-    private static File dir;
     private static File file;
+    private static File dir;
 
     public static void fileWriter(String contents) {
-        file = new File(LogUtil.logConfig.getFilePath()+LogUtil.logConfig.getFileNamePatten()+".log");
-
-        if(file.length() == 0){
-            log.info("size: {}", file.length());
-            try {
+        file = new File(LogUtil.logConfig.getFilePath() + LogUtil.logConfig.getFileNamePatten() + ".log");
+        try {
+            if (file.length() == 0) {
                 file.createNewFile();
-
-            } catch (IOException e) {
-                e.printStackTrace();
             }
 
-        }
-        long kb = file.length() / 1024;
-        long mb = kb / 1024;
+            log.info("size: {}", file.length());
 
-        // 설정된 FileSize보다 작을때
-        if (kb < LogUtil.logConfig.getFileSize()) {
-            try {
-                log.info("<");
+            long kb = file.length() / 1024;
+            long mb = kb / 1024;
+
+            if (kb < LogUtil.logConfig.getFileSize()) {
+
                 StringBuilder tmp = new StringBuilder();
 
                 BufferedReader br = new BufferedReader(new FileReader(file));
                 String fileContents = "";
                 while ((fileContents = br.readLine()) != null) {
-                    tmp.append(fileContents+"\n");
+                    tmp.append(fileContents + "\n");
                 }
                 log.info(tmp.toString());
                 br.close();
@@ -54,54 +48,50 @@ public class FileUtil {
                 BufferedWriter bw = new BufferedWriter(fw);
 
                 bw.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        // 클경우
-        // 1. 기존파일 INDEX+1
-        // 2. 새로운 파일 생성
-        else {
-            FileInfo fileInfo = getFileInfo();
-            log.info("{}", fileInfo);
-            if (fileInfo.getDailyFileCount() < LogUtil.logConfig.getFileDailyLimit()) {
-                File newFile = new File(LogUtil.logConfig.getFilePath() + LogUtil.logConfig.getFileNamePatten() + fileInfo.getLastFileIndex() + ".log");
-                if (file.renameTo(newFile)) {
-                    try {
 
+            }
+            // 클경우
+            // 1. 기존파일 INDEX+1
+            // 2. 새로운 파일 생성
+            else {
+                FileInfo fileInfo = getFileInfo();
+                log.info("{}", fileInfo);
+                if (fileInfo.getDailyFileCount() < LogUtil.logConfig.getFileDailyLimit()) {
+                    File newFile = new File(LogUtil.logConfig.getFilePath() + LogUtil.logConfig.getFileNamePatten() + fileInfo.getLastFileIndex() + ".log");
+                    if (file.renameTo(newFile)) {
                         FileWriter fw = new FileWriter(file);
                         fw.flush();
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     }
+                } else {
+                    log.info("MAX DailyLimitCount");
                 }
-            } else {
-                log.info("MAX DailyLimitCount");
             }
+
+            // 설정된 FileSize보다 작을때
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    public static FileInfo getFileInfo(){
+    public static FileInfo getFileInfo() {
         FileInfo fileInfo = new FileInfo();
         dir = new File(LogUtil.logConfig.getFilePath());
 
         File[] fileList = dir.listFiles(new FilenameFilter() {
-                                            @Override
-                                            public boolean accept(File dir, String name) {
-                                                boolean checkName = name.contains(LogUtil.logConfig.getFileNamePatten());
-                                                boolean checkExt = name.endsWith(".log");
-                                                boolean except = !name.equals(LogUtil.logConfig.getFileNamePatten()+".log");
-                                                return (checkName && checkExt && except);
-                                            }
+            @Override
+            public boolean accept(File dir, String name) {
+                boolean checkName = name.contains(LogUtil.logConfig.getFileNamePatten());
+                boolean checkExt = name.endsWith(".log");
+                boolean except = !name.equals(LogUtil.logConfig.getFileNamePatten() + ".log");
+                return (checkName && checkExt && except);
+            }
         });
 
-        if(ArrayUtils.isEmpty(fileList)){
+        if (ArrayUtils.isEmpty(fileList)) {
             fileInfo.setLastFileIndex(1);
             fileInfo.setDailyFileCount(0);
             return fileInfo;
-        }
-        else{
+        } else {
             // FileList에서 파일명만 가져와 문자열 제거후 Max값
             OptionalInt fileIndex = Arrays.stream(fileList)
                     .map(dir -> dir.getName().replaceAll("[^0-9]", ""))
