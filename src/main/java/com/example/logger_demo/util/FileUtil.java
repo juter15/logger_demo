@@ -1,36 +1,31 @@
 package com.example.logger_demo.util;
 
-import lombok.Data;
+import com.example.logger_demo.model.FileInfo;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
-import org.springframework.boot.SpringApplication;
 import org.springframework.stereotype.Service;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class FileUtil {
-    private static File filePath = new File(LogUtil.logConfig.getFilePath());
+    private static File dir;
+    private static File file;
+
     public static void fileWriter(String contents) {
-        File file = new File(LogUtil.logConfig.getFilePath()+LogUtil.logConfig.getFileNamePatten()+".log");
+        file = new File(LogUtil.logConfig.getFilePath()+LogUtil.logConfig.getFileNamePatten()+".log");
 
         if(file.length() == 0){
             log.info("size: {}", file.length());
             try {
                 file.createNewFile();
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -66,29 +61,32 @@ public class FileUtil {
         // 클경우
         // 1. 기존파일 INDEX+1
         // 2. 새로운 파일 생성
-        else{
-            if(getDailyFileCount() <= LogUtil.logConfig.getFileDailyLimit()) {
-                log.info("MAX");
-                File newFile = new File(LogUtil.logConfig.getFilePath() + LogUtil.logConfig.getFileNamePatten() + getLastFileIndex() + ".log");
+        else {
+            FileInfo fileInfo = getFileInfo();
+            log.info("{}", fileInfo);
+            if (fileInfo.getDailyFileCount() < LogUtil.logConfig.getFileDailyLimit()) {
+                File newFile = new File(LogUtil.logConfig.getFilePath() + LogUtil.logConfig.getFileNamePatten() + fileInfo.getLastFileIndex() + ".log");
                 if (file.renameTo(newFile)) {
                     try {
 
                         FileWriter fw = new FileWriter(file);
-                        BufferedWriter bw = new BufferedWriter(fw);
+                        fw.flush();
 
-                        bw.close();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
-            }
-            else{
+            } else {
                 log.info("MAX DailyLimitCount");
             }
         }
     }
-    public static int getLastFileIndex(){
-        File[] fileList = filePath.listFiles(new FilenameFilter() {
+
+    public static FileInfo getFileInfo(){
+        FileInfo fileInfo = new FileInfo();
+        dir = new File(LogUtil.logConfig.getFilePath());
+
+        File[] fileList = dir.listFiles(new FilenameFilter() {
                                             @Override
                                             public boolean accept(File dir, String name) {
                                                 boolean checkName = name.contains(LogUtil.logConfig.getFileNamePatten());
@@ -97,36 +95,26 @@ public class FileUtil {
                                                 return (checkName && checkExt && except);
                                             }
         });
-        log.info("fileList: {}", fileList);
+
         if(ArrayUtils.isEmpty(fileList)){
-            return 1;
+            fileInfo.setLastFileIndex(1);
+            fileInfo.setDailyFileCount(0);
+            return fileInfo;
         }
         else{
-            String fileIndex = Arrays.stream(fileList).sorted().collect(Collectors.toList()).get(fileList.length - 1).toString()
-                    .replace(LogUtil.logConfig.getFilePath(), "")
-                    .replace(LogUtil.logConfig.getFileNamePatten(), "")
-                    .split("\\.")[0];
-            int nextIndex = Integer.parseInt(fileIndex)+ 1;
-            return nextIndex;
+            // FileList에서 파일명만 가져와 문자열 제거후 Max값
+            OptionalInt fileIndex = Arrays.stream(fileList)
+                    .map(dir -> dir.getName().replaceAll("[^0-9]", ""))
+                    .mapToInt(Integer::parseInt)
+                    .max();
+            fileInfo.setLastFileIndex(fileIndex.getAsInt() + 1);
+
+            // List에서 수정날짜가 오늘날짜인 파일 갯수
+            fileInfo.setDailyFileCount((int) Arrays.stream(fileList).filter(dir -> dir.setLastModified(new Date().getTime())).count());
+            return fileInfo;
         }
 
     }
-    public static int getDailyFileCount() {
-        File[] fileList = filePath.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                boolean checkName = name.contains(LogUtil.logConfig.getFileNamePatten());
-                boolean checkExt = name.endsWith(".log");
-                boolean checkDailyCount = dir.setLastModified(new Date().getTime());
-                return (checkName && checkExt && checkDailyCount);
-            }
-        });
-        if(ArrayUtils.isEmpty(fileList)){
-            return 0;
-        }
-        else{
-            log.info("DailyCount: {}", fileList.length-1);
-            return fileList.length-1;
-        }
-    }
+
+
 }

@@ -23,26 +23,14 @@ public class TestService {
     private boolean state = false;
 
     public void testConfigStart(boolean state) {
-        try {
-            this.state = state;
-            BufferedReader br = new BufferedReader(new FileReader(logUtil.configPath));
+        this.state = state;
 
-            JAXBContext jaxbContext = JAXBContext.newInstance(LogConfig.class); // JAXB Context 생성
-            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller(); // Unmarshaller Object 생성
-            LogUtil.logConfig = (LogConfig) unmarshaller.unmarshal(br);
-            log.info("config: {}", LogUtil.logConfig);
+        Random random = new Random();
 
-            Random random = new Random();
+        while (this.state) {
+            int rd = random.nextInt(4) + 1;
+            LogUtil.printf(rd, "%s\n%s\n", "TEST" + rd, "TEST" + rd);
 
-            while (this.state) {
-                int rd = random.nextInt(4) + 1;
-                LogUtil.printf(rd, "%s\n%s\n", "TEST" + rd, "TEST" + rd);
-
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JAXBException e) {
-            e.printStackTrace();
         }
 
 

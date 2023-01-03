@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
@@ -18,7 +20,7 @@ public class ConfigController {
     @GetMapping("/setLogLevel")
     public ResponseEntity setLogLevel(@RequestParam("logLevel") int logLevel){
         LogUtil.setLogLevel(logLevel);
-        return ResponseEntity.ok("##SET##");
+        return ResponseEntity.ok("##SET LOG LEVEL##");
     }
 
     @GetMapping("/start")
@@ -30,5 +32,11 @@ public class ConfigController {
     public ResponseEntity testStop(){
         testService.testConfigStart(false);
         return ResponseEntity.ok("##STOP##");
+    }
+    @PostMapping("/setConfig")
+    public ResponseEntity setConfig(@RequestBody String configPath){
+        log.info("configPath: {}", configPath);
+        LogUtil.setConfig(configPath);
+        return ResponseEntity.ok("### SET CONFIG ###");
     }
 }

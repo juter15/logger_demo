@@ -1,6 +1,9 @@
 package com.example.logger_demo.util;
 
 import com.example.logger_demo.model.LogConfig;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +20,7 @@ public class LogUtil {
     public String configPath;
 
     private static int logLevel = 1;
+
     public static LogConfig logConfig;
 
     public static void setLogLevel(int logLevel) {
@@ -27,11 +31,18 @@ public class LogUtil {
     //파일 형식 XML? JSON? STRING?
     public static void setConfig(String configFilePath) {
         try {
-            BufferedReader bufferedReader = new BufferedReader(new FileReader(configFilePath));
+            BufferedReader br = new BufferedReader(new FileReader(configFilePath));
+            JAXBContext jaxbContext = JAXBContext.newInstance(LogConfig.class); // JAXB Context 생성
+            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller(); // Unmarshaller Object 생성
+            logConfig = (LogConfig) unmarshaller.unmarshal(br);
+            log.info("config: {}", logConfig);
+            br.close();
             // setConig
             // logConfig =
 
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JAXBException e) {
             e.printStackTrace();
         }
 
