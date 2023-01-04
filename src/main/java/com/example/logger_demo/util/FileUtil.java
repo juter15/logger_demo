@@ -4,6 +4,7 @@ import com.example.logger_demo.model.FileInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -11,7 +12,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Service
+@Component
 @RequiredArgsConstructor
 @Slf4j
 public class FileUtil {
@@ -25,11 +26,10 @@ public class FileUtil {
                 file.createNewFile();
             }
 
-            log.info("size: {}", file.length());
-
             long kb = file.length() / 1024;
             long mb = kb / 1024;
 
+            // 설정된 FileSize보다 작을때
             if (kb < LogUtil.logConfig.getFileSize()) {
 
                 StringBuilder tmp = new StringBuilder();
@@ -67,7 +67,6 @@ public class FileUtil {
                 }
             }
 
-            // 설정된 FileSize보다 작을때
         } catch (IOException e) {
             e.printStackTrace();
         }

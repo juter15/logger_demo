@@ -5,19 +5,22 @@ import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.util.Formatter;
 
-@Service
+@Component
 @Slf4j
 @RequiredArgsConstructor
 public class LogUtil {
     @Value("${log.configPath}")
     public String configPath;
+
 
     private static int logLevel = 1;
 
@@ -25,7 +28,7 @@ public class LogUtil {
 
     public static void setLogLevel(int logLevel) {
         LogUtil.logLevel = logLevel;
-        log.info("{}",logLevel);
+        log.info("{}",LogUtil.logLevel);
     }
 
     //파일 형식 XML? JSON? STRING?
@@ -37,21 +40,12 @@ public class LogUtil {
             logConfig = (LogConfig) unmarshaller.unmarshal(br);
             log.info("config: {}", logConfig);
             br.close();
-            // setConig
-            // logConfig =
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JAXBException e) {
+        } catch (IOException | JAXBException e) {
             e.printStackTrace();
         }
-
     }
 
-    //    public static LogConfig getLogConfig(){
-//        return logConfig;
-//    }
-//
     public static void getInstance() {
 
     }
@@ -63,6 +57,10 @@ public class LogUtil {
         }
     }
 
+
+    /**
+     * type에는 callid 외 추가 기능
+     * */
     public static void setAttr(String type, int val) {
 
     }
