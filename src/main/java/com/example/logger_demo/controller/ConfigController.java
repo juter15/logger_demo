@@ -15,11 +15,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequiredArgsConstructor
 @Slf4j
 public class ConfigController {
-    public final LogUtil logUtil;
+    private final LogUtil logUtil = LogUtil.getInstance();
     public final TestService testService;
     @GetMapping("/setLogLevel")
     public ResponseEntity setLogLevel(@RequestParam("logLevel") int logLevel){
-        LogUtil.setLogLevel(logLevel);
+        logUtil.setLogLevel(logLevel);
         return ResponseEntity.ok("##SET LOG LEVEL##");
     }
 
@@ -36,7 +36,7 @@ public class ConfigController {
     @PostMapping("/setConfig")
     public ResponseEntity setConfig(@RequestBody String configPath){
         log.info("configPath: {}", configPath);
-        LogUtil.setConfig(configPath);
+        logUtil.setConfig(configPath);
         return ResponseEntity.ok("### SET CONFIG ###");
     }
 }

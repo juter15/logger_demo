@@ -21,18 +21,27 @@ public class LogUtil {
     @Value("${log.configPath}")
     public String configPath;
 
+    private static LogUtil instance;
 
     private static int logLevel = 1;
-
     public static LogConfig logConfig;
 
-    public static void setLogLevel(int logLevel) {
+    public static LogUtil getInstance() {
+        if(instance == null){
+            synchronized (LogUtil.class){
+                instance = new LogUtil();
+            }
+        }
+        return instance;
+    }
+
+    public void setLogLevel(int logLevel) {
         LogUtil.logLevel = logLevel;
-        log.info("{}",LogUtil.logLevel);
+        log.info("{}", LogUtil.logLevel);
     }
 
     //파일 형식 XML? JSON? STRING?
-    public static void setConfig(String configFilePath) {
+    public void setConfig(String configFilePath) {
         try {
             BufferedReader br = new BufferedReader(new FileReader(configFilePath));
             JAXBContext jaxbContext = JAXBContext.newInstance(LogConfig.class); // JAXB Context 생성
@@ -46,9 +55,6 @@ public class LogUtil {
         }
     }
 
-    public static void getInstance() {
-
-    }
 
     public static void printf(int logLevel, String format, Object... args) {
         if (LogUtil.logLevel >= logLevel) {
@@ -60,12 +66,12 @@ public class LogUtil {
 
     /**
      * type에는 callid 외 추가 기능
-     * */
-    public static void setAttr(String type, int val) {
+     */
+    public void setAttr(String type, int val) {
 
     }
 
-    public static void setAttr(String type, String val) {
+    public void setAttr(String type, String val) {
 
     }
 }

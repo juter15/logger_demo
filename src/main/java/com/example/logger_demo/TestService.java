@@ -7,6 +7,7 @@ import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +20,7 @@ import java.util.Random;
 @RequiredArgsConstructor
 @Slf4j
 public class TestService {
-    private final LogUtil logUtil;
+
     private boolean state = false;
 
     public void testConfigStart(boolean state) {
@@ -27,12 +28,12 @@ public class TestService {
 
         Random random = new Random();
 
+        int index = 1;
         while (this.state) {
             int rd = random.nextInt(4) + 1;
-            LogUtil.printf(rd, "%s\n%s\n", "TEST" + rd, "TEST" + rd);
-
+            LogUtil.printf(rd, "%d %s\n", index, "TEST" + rd);
+            index++;
         }
-
 
     }
 }
