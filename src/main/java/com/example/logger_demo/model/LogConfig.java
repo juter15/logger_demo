@@ -10,7 +10,6 @@ import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 
 @Data
 @ToString
-//@XmlAccessorType(XmlAccessType.FIELD)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlRootElement(name = "log")
 @NoArgsConstructor

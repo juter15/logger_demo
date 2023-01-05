@@ -5,6 +5,6 @@ import lombok.ToString;
 
 @Data
 public class FileInfo {
-    private int lastFileIndex;
+    private int nextIndex;
     private int dailyFileCount;
 }

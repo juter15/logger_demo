@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Slf4j
 public class ConfigController {
     private final LogUtil logUtil = LogUtil.getInstance();
+
     public final TestService testService;
     @GetMapping("/setLogLevel")
     public ResponseEntity setLogLevel(@RequestParam("logLevel") int logLevel){

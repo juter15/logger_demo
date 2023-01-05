@@ -3,79 +3,66 @@ package com.example.logger_demo.util;
 import com.example.logger_demo.model.FileInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class FileUtil {
-    private static File file;
     private static File dir;
 
     public static void fileWriter(String contents) {
-        file = new File(LogUtil.logConfig.getFilePath() + LogUtil.logConfig.getFileNamePatten() + ".log");
+        dir = new File(LogUtil.logConfig.getFilePath());
+        File file = new File(dir, LogUtil.logConfig.getFileNamePatten() + ".log");
         try {
-            if (file.length() == 0) {
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            if (!file.exists()) {
                 file.createNewFile();
             }
+
 
             long kb = file.length() / 1024;
             long mb = kb / 1024;
 
-            // 설정된 FileSize보다 작을때
-            if (kb < LogUtil.logConfig.getFileSize()) {
+            FileWriter fw = new FileWriter(file, true);
+            fw.append(contents);
+            fw.flush();
 
-                StringBuilder tmp = new StringBuilder();
 
-                BufferedReader br = new BufferedReader(new FileReader(file));
-                String fileContents = "";
-                while ((fileContents = br.readLine()) != null) {
-                    tmp.append(fileContents + "\n");
-                }
-                log.info(tmp.toString());
-                br.close();
-                System.out.println(tmp);
-
-                FileWriter fw = new FileWriter(file);
-                fw.write(tmp + contents);
-                BufferedWriter bw = new BufferedWriter(fw);
-
-                bw.close();
-
-            }
-            // 클경우
-            // 1. 기존파일 INDEX+1
-            // 2. 새로운 파일 생성
-            else {
+            if (kb > LogUtil.logConfig.getFileSize()) {
                 FileInfo fileInfo = getFileInfo();
                 log.info("{}", fileInfo);
+
                 if (fileInfo.getDailyFileCount() < LogUtil.logConfig.getFileDailyLimit()) {
-                    File newFile = new File(LogUtil.logConfig.getFilePath() + LogUtil.logConfig.getFileNamePatten() + fileInfo.getLastFileIndex() + ".log");
-                    if (file.renameTo(newFile)) {
-                        FileWriter fw = new FileWriter(file);
-                        fw.flush();
-                    }
+                    File newFile = new File(LogUtil.logConfig.getFilePath() + LogUtil.logConfig.getFileNamePatten() + fileInfo.getNextIndex() + ".log");
+                    FileUtils.copyFile(file, newFile);
+                    new FileWriter(file, false).close();
+
                 } else {
                     log.info("MAX DailyLimitCount");
+
                 }
             }
 
-        } catch (IOException e) {
+        } catch (
+                IOException e) {
             e.printStackTrace();
         }
+
     }
 
+    /**
+     * 디렉토리에서 조건에 맞는 파일들 조회하여 nextIndex, dailyFileCount 리턴
+     */
     public static FileInfo getFileInfo() {
         FileInfo fileInfo = new FileInfo();
-        dir = new File(LogUtil.logConfig.getFilePath());
-
         File[] fileList = dir.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
@@ -87,7 +74,7 @@ public class FileUtil {
         });
 
         if (ArrayUtils.isEmpty(fileList)) {
-            fileInfo.setLastFileIndex(1);
+            fileInfo.setNextIndex(1);
             fileInfo.setDailyFileCount(0);
             return fileInfo;
         } else {
@@ -96,7 +83,7 @@ public class FileUtil {
                     .map(dir -> dir.getName().replaceAll("[^0-9]", ""))
                     .mapToInt(Integer::parseInt)
                     .max();
-            fileInfo.setLastFileIndex(fileIndex.getAsInt() + 1);
+            fileInfo.setNextIndex(fileIndex.getAsInt() + 1);
 
             // List에서 수정날짜가 오늘날짜인 파일 갯수
             fileInfo.setDailyFileCount((int) Arrays.stream(fileList).filter(dir -> dir.setLastModified(new Date().getTime())).count());
