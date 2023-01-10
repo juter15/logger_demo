@@ -1,6 +1,7 @@
 package com.example.logger_demo.controller;
 
 import com.example.logger_demo.TestService;
+import com.example.logger_demo.util.FileUtil;
 import com.example.logger_demo.util.LogUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Slf4j
 public class ConfigController {
     private final LogUtil logUtil = LogUtil.getInstance();
+    private final FileUtil fileUtil;
 
     public final TestService testService;
     @GetMapping("/setLogLevel")
@@ -40,4 +42,5 @@ public class ConfigController {
         logUtil.setConfig(configPath);
         return ResponseEntity.ok("### SET CONFIG ###");
     }
+
 }

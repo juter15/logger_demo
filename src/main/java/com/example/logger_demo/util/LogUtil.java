@@ -7,23 +7,23 @@ import jakarta.xml.bind.Unmarshaller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.util.Formatter;
 
-@Component
+@Service
 @Slf4j
 @RequiredArgsConstructor
 public class LogUtil {
     @Value("${log.configPath}")
     public String configPath;
-
     private static LogUtil instance;
+    private static FileUtil fileUtil = FileUtil.getInstance();
 
     private static int logLevel = 1;
     public static LogConfig logConfig;
-
+//
     public static LogUtil getInstance() {
         if(instance == null){
             synchronized (LogUtil.class){
@@ -57,7 +57,7 @@ public class LogUtil {
     public static void printf(int logLevel, String format, Object... args) {
         if (LogUtil.logLevel >= logLevel) {
             String contents = new Formatter().format(format, args).toString();
-            FileUtil.fileWriter(contents);
+            fileUtil.fileWriter(contents);
         }
     }
 

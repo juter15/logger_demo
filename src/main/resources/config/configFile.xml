@@ -1,3 +1,3 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<log filePath="C:\STS_project\logger_demo\src\main\resources\log\" namePattern="logTest" fileSize="10" fileDailyLimit="10" serverIp="127.0.0.1" serverPort="1004">
+<log filePath="C:/STS_project/logger_demo/src/main/resources/logs" name="log" namePattern="yyyyMMdd" fileSize="30" fileDailyLimit="10" serverIp="127.0.0.1" serverPort="1004">
 </log>

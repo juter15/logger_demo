@@ -17,6 +17,8 @@ import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;
 public class LogConfig {
     @XmlAttribute(name = "filePath")
     private String filePath;
+    @XmlAttribute(name = "name")
+    private String name;
     @XmlAttribute(name = "namePattern")
     private String fileNamePatten;
     @XmlAttribute(name = "fileSize")
