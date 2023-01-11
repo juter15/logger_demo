@@ -14,7 +14,8 @@ import java.util.Queue;
 public class FileInfo {
     private File dir;
     private File currentFile;
-    private long checkTime;
+    private long currentTime;
+    private long NextDateTime;
     private String fileName;
 
 }

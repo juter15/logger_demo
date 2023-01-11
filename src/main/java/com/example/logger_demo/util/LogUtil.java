@@ -57,7 +57,7 @@ public class LogUtil {
     public static void printf(int logLevel, String format, Object... args) {
         if (LogUtil.logLevel >= logLevel) {
             String contents = new Formatter().format(format, args).toString();
-            fileUtil.fileWriter(contents);
+            fileUtil.fileWriter(logLevel, contents, System.currentTimeMillis());
         }
     }
 

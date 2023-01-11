@@ -8,6 +8,9 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 @Service
@@ -19,9 +22,9 @@ public class FileUtil {
     private List<File> fileList;
     public FileWriter fw = null;
     public FileInfo fileInfo = new FileInfo();
-    private File newFile;
+    private File nextIndexFile;
+    private long currentFileSize;
     private File deleteFile;
-    public FileRunnable fileRunnable = FileRunnable.getInstance();
 
 
     private static FileUtil instance;
@@ -40,32 +43,49 @@ public class FileUtil {
         fileInfo.setCurrentFile(new File(fileInfo.getDir(), fileInfo.getFileName() + ".log"));
     }
 
-    public void fileWriter(String contents) {
+    public void fileWriter(int logLevel, String contents, long currentTime) {
         try {
+            fileInfo.setCurrentTime(currentTime);
+
             if (fw == null) {
-                fileInfo.setCheckTime(System.currentTimeMillis());
+                fileInfo.setNextDateTime(setNextDate());
                 fileInfo.setDir(new File(LogUtil.logConfig.getFilePath()));
                 setCurrentFile();
-                fileExistCheck();
+                fileExistCheckAndCreate();
                 fw = new FileWriter(fileInfo.getCurrentFile(), true);
                 getFileList();
                 log.info("FILE INFO : {}", fileInfo);
-                fileRunnable.start();
+//                fileRunnable.start();
+            } else {
+                // currnetTime 가져온다
+                if (fileInfo.getCurrentTime() >= fileInfo.getNextDateTime()){
+                    fw.close();
+                    setCurrentFile();
+                    fw = new FileWriter(fileInfo.getCurrentFile(), true);
+                    fileInfo.setNextDateTime(setNextDate());
+                    getFileList();
+                }
+
             }
+            //
+
+            fw.append(getLogFormat(getDateFormat(currentTime),logLevel));
             fw.append(contents);
             fw.flush();
 
-            long mb = fileInfo.getCurrentFile().length() / 1024 / 1024;
+            currentFileSize = fileInfo.getCurrentFile().length() / 1024 / 1024;
 
-            if (mb > LogUtil.logConfig.getFileSize()) {
-                log.info("SIZE: {}, CONF: {}", mb, LogUtil.logConfig.getFileSize());
+            if (currentFileSize > LogUtil.logConfig.getFileSize()) {
+                fw.close();
+                log.info("currentFileSize: {}, CONF: {}", currentFileSize, LogUtil.logConfig.getFileSize());
+                getFileList();
+
                 if (fileList.size() >= LogUtil.logConfig.getFileDailyLimit()) {
                     deleteFile();
                 }
-                fw.close();
-                newFile = new File(LogUtil.logConfig.getFilePath() + "/" + fileInfo.getFileName() + "." + getNextIndex() + ".log");
-                fileList.add(newFile);
-                FileUtils.moveFile(fileInfo.getCurrentFile(), newFile);
+                nextIndexFile = new File(LogUtil.logConfig.getFilePath() + "/" + fileInfo.getFileName() + "." + getNextIndex() + ".log");
+                fileList.add(nextIndexFile);
+                FileUtils.moveFile(fileInfo.getCurrentFile(), nextIndexFile);
                 fileInfo.getCurrentFile().createNewFile();
                 fw = new FileWriter(fileInfo.getCurrentFile(), true);
 
@@ -111,7 +131,7 @@ public class FileUtil {
 //
 //
 //    }
-    public FileInfo getFileList() {
+    public void getFileList() {
         fileList = new ArrayList<>();
 
         String s;
@@ -123,18 +143,15 @@ public class FileUtil {
 
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
             while ((s = br.readLine()) != null) {
-                fileList.add(new File(LogUtil.logConfig.getFilePath()+ "/" + s));
+                fileList.add(new File(LogUtil.logConfig.getFilePath() + "/" + s));
             }
-            log.info("Command List: {}",fileList);
+            log.info("Command List: {}", fileList);
             p.waitFor();
             p.destroy();
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
-        return fileInfo;
     }
 
     public int getNextIndex() {
@@ -157,7 +174,7 @@ public class FileUtil {
         }
     }
 
-    public void fileExistCheck() {
+    public void fileExistCheckAndCreate() {
         if (!fileInfo.getDir().exists()) {
             fileInfo.getDir().mkdirs();
         }
@@ -169,5 +186,20 @@ public class FileUtil {
             }
         }
 
+    }
+    public Long setNextDate() {
+        return Instant.ofEpochMilli(fileInfo.getCurrentTime()).atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1).atTime(0, 0, 0, 0).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+    }
+
+    public String getDateFormat(long currentTime){
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        return dateFormat.format(new Date(currentTime));
+    }
+    public String getLogFormat(Object... args){
+
+
+
+
+        return new Formatter().format("%s %s ---- : ",  args).toString();
     }
 }
