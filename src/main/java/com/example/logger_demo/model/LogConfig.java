@@ -31,4 +31,7 @@ public class LogConfig {
     private int serverPort;
 
 
+    public long getFileSize(){
+        return this.fileSize * 1024 * 1024;
+    }
 }

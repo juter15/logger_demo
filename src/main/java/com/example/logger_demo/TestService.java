@@ -19,7 +19,7 @@ public class TestService {
 
     public void testConfigStart(boolean state) {
         logUtil.setConfig(configPath);
-        logUtil.setLogLevel(4);
+        logUtil.setLogLevel(3);
         this.state = state;
 
         Random random = new Random();

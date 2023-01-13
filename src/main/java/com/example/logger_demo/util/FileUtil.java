@@ -1,5 +1,6 @@
 package com.example.logger_demo.util;
 
+import com.example.logger_demo.enums.LogLevel;
 import com.example.logger_demo.model.FileInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -69,11 +70,11 @@ public class FileUtil {
             }
             //
 
-            fw.append(getLogFormat(getDateFormat(currentTime),logLevel));
+            fw.append(getLogFormat(getDateFormat(currentTime), getLevelName(logLevel)));
             fw.append(contents);
             fw.flush();
 
-            currentFileSize = fileInfo.getCurrentFile().length() / 1024 / 1024;
+            currentFileSize = fileInfo.getCurrentFile().length();
 
             if (currentFileSize > LogUtil.logConfig.getFileSize()) {
                 fw.close();
@@ -196,10 +197,19 @@ public class FileUtil {
         return dateFormat.format(new Date(currentTime));
     }
     public String getLogFormat(Object... args){
-
-
-
-
         return new Formatter().format("%s %s ---- : ",  args).toString();
+    }
+    public String getLevelName(int logLevel) {
+        switch (logLevel) {
+            case 1:
+                return LogLevel.ERROR.name();
+            case 2:
+                return LogLevel.WARN.name();
+            case 3:
+                return LogLevel.INFO.name();
+            case 4:
+                return LogLevel.DEBUG.name();
+        }
+        return null;
     }
 }

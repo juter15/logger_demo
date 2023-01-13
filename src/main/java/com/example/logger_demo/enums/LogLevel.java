@@ -1,12 +1,14 @@
 package com.example.logger_demo.enums;
 
 public enum LogLevel {
-    LOG_LEVEL1(1),
-    LOG_LEVEL2(2),
-    LOG_LEVEL3(3),
-    LOG_LEVEL4(4);
+    //    FATAL(1),
+    ERROR(1),
+    WARN(2),
+    INFO(3),
+    DEBUG(4);
 
     private int logLevel;
+
     LogLevel(int logLevel) {
         this.logLevel = logLevel;
     }
@@ -14,4 +16,6 @@ public enum LogLevel {
     public int getLogLevel() {
         return logLevel;
     }
+
+
 }
